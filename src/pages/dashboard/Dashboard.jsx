@@ -12,18 +12,16 @@ import ViewProfile from "../features/admin/ViewProfile";
 import ProfileMenu from "../../components/menus/ProfileMenu";
 import api from "../../api/axios";
 import ReusableFormImplementation from "../../components/form/ReusableFormImplementation";
-import VendorList from "../features/vendor/VendorList";
-import ViewVendor from "../features/vendor/ViewVendor";
+import ViewVendor from "../features/government/ViewVendor";
 import ViewClient from "../features/clients/ViewClient";
 import PaymentList from "../features/payments/PaymentList";
 import EditProfile2 from "../features/admin/EditProfile2";
-import EditVendor from "../features/vendor/EditVendor";
+import EditVendor from "../features/government/EditVendor";
 import ClientList from "../features/clients/ClientList";
 import CreateUser from "../features/clients/CreateClient";
-import CreateUserVendor from "../features/vendor/CreateVendorUser";
-import CreateVendor from "../features/vendor/CreateVendor";
+import CreateUserVendor from "../features/government/CreateVendorUser";
 import EditUserProfile from "../features/clients/EditUserProfile";
-import EditVendorUser from "../features/vendor/vendoruser/EditVendorUser";
+// import EditVendorUser from "../features/government/governmentuser/EditVendorUser";
 import PaymentView from "../features/payments/PaymentView";
 import EmailList from "../settings/email/EmailList";
 import ViewEmailTemplate from "../settings/email/ViewEmailTemplate";
@@ -41,6 +39,8 @@ import EditAccessGroup from "../settings/accessgroup/EditAccessGroup";
 import AccessGroupView from "../settings/accessgroup/AccessGroupView";
 import Advertisement from "../settings/advertisement/AdvertisementList";
 import CreateAdvertisement from "../settings/advertisement/CreateAdvertisement";
+import GovernmentList from "../features/government/GovernmentList";
+import CreateGovernment from "../features/government/CreateGovernment";
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [admin, setAdmin] = useState([]);
@@ -142,14 +142,14 @@ const Dashboard = () => {
             <Route path="/view/profile" element={<ViewProfile />} />
 
 
-            <Route path="vendor" element={<VendorList />} />
-            <Route path="vendor/view/:uniqueId" element={<ViewVendor />} />
-            <Route path="/vendor/create" element={<CreateVendor />} />
-            <Route path="/vendor/users/create/:uniqueId" element={<CreateUserVendor />} />
-            <Route path="vendor/edit/:uniqueId" element={<EditVendor />} />
+            <Route path="authority" element={<GovernmentList />} />
+            <Route path="authority/view/:uniqueId" element={<ViewVendor />} />
+            <Route path="/authority/create" element={<CreateGovernment />} />
+            <Route path="/authority/users/create/:uniqueId" element={<CreateUserVendor />} />
+            <Route path="authority/edit/:uniqueId" element={<EditVendor />} />
 
             {/* Vendor User */}
-            <Route path="/vendor/user/edit/:userUniqueId" element={<EditVendorUser />} />
+            {/* <Route path="/government/user/edit/:userUniqueId" element={<EditVendorUser />} /> */}
 
             <Route path="users" element={<ClientList />} />
             <Route path="/users/create" element={<CreateUser />} />

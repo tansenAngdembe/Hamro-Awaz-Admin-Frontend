@@ -3,6 +3,11 @@ import { MoveLeft } from "lucide-react";
 import Select from "react-select";
 import Alert from "../alerts/Alert";
 import config from "../../utils/config";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import { useRef } from "react";
+import { useMapEvents } from "react-leaflet";
+
 
 const ReusableForm = ({
   title,
@@ -31,7 +36,7 @@ const ReusableForm = ({
   const BASE_URL = config.fileURL;
 
   useEffect(() => {
-    if(!window.location.url === "vendor/create"){
+    if (!window.location.url === "authority/create") {
       setFormData(initialData);
 
     }
@@ -99,21 +104,29 @@ const ReusableForm = ({
   };
 
 
-useEffect(() => {
-  const imageField = initialData?.imageUrls;
+  useEffect(() => {
+    const imageField = initialData?.imageUrls;
 
-  if (Array.isArray(imageField)) {
-    setImages(
-      imageField.map((url) => ({
-        preview: url.startsWith("http") ? url : `${BASE_URL}${url}`,
-        name: "existing",
-        isExisting: true,
-      }))
-    );
-  }
-}, [initialData]);
+    if (Array.isArray(imageField)) {
+      setImages(
+        imageField.map((url) => ({
+          preview: url.startsWith("http") ? url : `${BASE_URL}${url}`,
+          name: "existing",
+          isExisting: true,
+        }))
+      );
+    }
+  }, [initialData]);
 
+  const LocationPicker = ({ onSelect }) => {
+    useMapEvents({
+      click(e) {
+        onSelect(e.latlng.lat, e.latlng.lng);
+      },
+    });
 
+    return null;
+  };
 
   const handleImageUpload = (e, fieldName, maxImages = 4) => {
     const files = Array.from(e.target.files).slice(
@@ -192,14 +205,17 @@ useEffect(() => {
     } = field;
 
     const baseInputClass =
-      "w-full h-[40px] text-[14px] border border-gray-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500";
+      "w-full h-11 text-sm rounded-lg border border-gray-200 bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[#1a963d]/40 focus:border-[#1a963d] transition";
+
     const baseSelectClass =
-      "w-full h-[40px] text-[14px] border border-gray-400 px-2 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500";
+      "w-full h-11 text-sm rounded-lg border border-gray-200 bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[#1a963d]/40 focus:border-[#1a963d] transition";
 
     const handleFieldChange = (value) => {
       handleChange(name, value);
       if (onChange) onChange(value, formData);
     };
+    const mapRef = useRef(null);
+
 
     switch (type) {
       case "text":
@@ -220,7 +236,7 @@ useEffect(() => {
               {...fieldProps}
             />
             {helpText && (
-              <small className="text-gray-500 mt-1 block">{helpText}</small>
+              <p className="text-xs text-gray-500 mt-1">{helpText}</p>
             )}
           </div>
         );
@@ -234,7 +250,7 @@ useEffect(() => {
             rows={rows}
             cols={cols}
             placeholder={placeholder}
-            className="w-full text-[14px] border border-gray-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm rounded-lg border border-gray-200 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a963d]/40 focus:border-[#1a963d] transition"
             required={required}
             disabled={disabled}
             {...fieldProps}
@@ -281,19 +297,17 @@ useEffect(() => {
 
       case "checkbox":
         return (
-          <div
-            className={`flex items-center gap-2 ${colSpan ? colSpan : "min-w-[180px]"
-              }`}
-          >
+          <div className={`flex items-center gap-3 ${colSpan || "min-w-[180px]"}`}>
             <input
               type="checkbox"
               name={name}
               checked={formData[name] || false}
               onChange={(e) => handleCheckboxChange(name, e.target.checked)}
               disabled={disabled}
+              className="h-4 w-4 rounded border-gray-300 text-[#1a963d] focus:ring-[#1a963d]"
               {...fieldProps}
             />
-            <label className="text-[15px] font-medium text-gray-700">
+            <label className="text-sm font-medium text-gray-700">
               {label}
             </label>
           </div>
@@ -301,62 +315,54 @@ useEffect(() => {
 
       case "file":
         return (
-          <div>
-            <div className="inline-flex items-start gap-2 rounded border border-gray-300 bg-transparent p-2">
-              {images.length < maxImages && (
-                <div
-                  onClick={() => document.getElementById(`${name}Input`).click()}
-                  className="w-24 h-24 cursor-pointer border-2 border-dashed border-gray-400 rounded flex items-center justify-center text-2xl text-gray-500"
+          <div className="flex flex-wrap gap-3">
+            {images.length < maxImages && (
+              <div
+                onClick={() => document.getElementById(`${name}Input`).click()}
+                className="w-24 h-24 cursor-pointer rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-[#1a963d] hover:text-[#1a963d] transition"
+              >
+                +
+              </div>
+            )}
+
+            {images.map((img, index) => (
+              <div
+                key={index}
+                className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 shadow-sm"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImage(index, name)}
+                  className="absolute top-1 right-1 bg-black/60 text-white w-5 h-5 flex items-center justify-center rounded-full text-xs hover:bg-black"
                 >
-                  +
-                </div>
-              )}
+                  ✕
+                </button>
+                <img
+                  src={img.preview}
+                  alt="preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
 
-              {images.map((img, index) => (
-                <div
-                  key={index}
-                  className="relative w-24 h-24 bg-gray-100 text-xs text-center p-1 rounded flex items-center justify-center overflow-hidden"
-                >
-                  {/* Remove button */}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(index, name)}
-                    className="absolute top-1 right-1 bg-black bg-opacity-50 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full hover:bg-opacity-80"
-                  >
-                    ✕
-                  </button>
-
-                  <img
-                    src={img.preview}
-                    alt="preview"
-                    className="w-full h-full object-cover rounded"
-                  />
-                </div>
-              ))}
-
-              <input
-                id={`${name}Input`}
-                type="file"
-                accept="image/*"
-                multiple
-                hidden
-                onChange={(e) => handleImageUpload(e, name, maxImages)}
-                disabled={disabled}
-                {...fieldProps}
-              />
-            </div>
+            <input
+              id={`${name}Input`}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={(e) => handleImageUpload(e, name, maxImages)}
+              disabled={disabled}
+              {...fieldProps}
+            />
           </div>
         );
-
 
       case "checkbox-group":
         return (
           <div className={`flex flex-wrap gap-x-6 gap-y-3 ${colSpan}`}>
             {options.map(({ name: checkboxName, label: checkboxLabel }) => (
-              <div
-                key={checkboxName}
-                className="flex items-center gap-2 min-w-[180px]"
-              >
+              <div key={checkboxName} className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   name={checkboxName}
@@ -365,8 +371,9 @@ useEffect(() => {
                     handleCheckboxChange(checkboxName, e.target.checked)
                   }
                   disabled={disabled}
+                  className="h-4 w-4 rounded border-gray-300 text-[#1a963d]"
                 />
-                <label className="text-[15px] font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-700">
                   {checkboxLabel}
                 </label>
               </div>
@@ -374,51 +381,83 @@ useEffect(() => {
           </div>
         );
 
+      case "map":
+        return (
+          <div className="w-full">
+            <div className="h-[520px] rounded-xl overflow-hidden border border-gray-200">
+              <MapContainer
+                center={[27.7172, 85.324]} // Nepal default
+                zoom={7}
+                className="h-full w-full"
+                // whenCreated={(map) => (mapRef.current = map)}
+               
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <LocationPicker
+                  onSelect={(lat, lng) => {
+                    handleChange("latitude", lat);
+                    handleChange("longitude", lng);
+                  }}
+                />
+                {formData.latitude && formData.longitude && (
+                  <Marker position={[formData.latitude, formData.longitude]} />
+                )}
+              </MapContainer>
+            </div>
+
+            {/* Display selected coords (read-only UI) */}
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">Latitude:</span>{" "}
+                {formData.latitude || "-"}
+              </div>
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">Longitude:</span>{" "}
+                {formData.longitude || "-"}
+              </div>
+            </div>
+
+            {helpText && (
+              <p className="text-xs text-gray-500 mt-2">{helpText}</p>
+            )}
+          </div>
+        );
+
+
       default:
         return null;
     }
   };
 
+
   return (
-    <div className={`bg-white shadow-md rounded-md p-6 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center mb-4">
-        <div className="flex items-center gap-2">
-          {showBackButton && onBack && (
-            <MoveLeft onClick={onBack} className="cursor-pointer" />
-          )}
-          <h2 className="text-xl font-semibold">{title}</h2>
-        </div>
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${className}`}>
+      <div className="flex items-center gap-3 mb-3">
+        {showBackButton && onBack && (
+          <MoveLeft onClick={onBack} className="cursor-pointer text-gray-600 hover:text-black" />
+        )}
+        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
       </div>
 
       {description && (
         <p className="text-sm text-gray-500 mb-4">{description}</p>
       )}
 
-      <div className="w-full h-px bg-gray-200 mb-4"></div>
+      <div className="border-b border-gray-200 mb-6" />
 
-      {/* Form */}
       <form onSubmit={handleSubmit}>
         <div className={`grid grid-cols-1 ${gridCols} gap-6`}>
           {fields.map((field, index) => {
-            const { name, label, type, colSpan = "", ...fieldProps } = field;
-
-            if (type === "checkbox-group") {
-              return (
-                <div key={index} className={colSpan || "col-span-full mt-1"}>
-                  {renderField(field)}
-                </div>
-              );
-            }
+            const { label, type, colSpan = "" } = field;
 
             return (
               <div key={index} className={colSpan}>
                 {type !== "checkbox" && (
-                  <label className="block text-[15px] font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     {label}
-                    {field.required && (
-                      <span className="text-red-500 ml-1">*</span>
-                    )}
+                    {field.required && <span className="text-red-500 ml-1">*</span>}
                   </label>
                 )}
                 {renderField(field)}
@@ -427,15 +466,14 @@ useEffect(() => {
           })}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 mt-6">
+        <div className="flex gap-4 mt-8">
           <button
             type="submit"
             disabled={loading || !isFormValid()}
-            className={`bg-[#1a963d] text-white font-medium px-5 py-2 transition-colors
-            ${loading || !isFormValid()
-                ? "opacity-60 cursor-not-allowed"
-                : "hover:bg-[#18b143] cursor-pointer"
+            className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white transition
+          ${loading || !isFormValid()
+                ? "bg-[#1a963d]/60 cursor-not-allowed"
+                : "bg-[#1a963d] hover:bg-[#148032]"
               }`}
           >
             {loading ? "Processing..." : submitButtonText}
@@ -445,34 +483,15 @@ useEffect(() => {
             <button
               type="button"
               onClick={handleReset}
-              className="border border-[#1a963d] text-[#1a963d] hover:bg-[#18b143] hover:text-white font-medium px-5 py-2 transition-colors cursor-pointer"
+              className="rounded-lg px-6 py-2.5 text-sm font-medium border border-[#1a963d] text-[#1a963d] hover:bg-[#1a963d] hover:text-white transition"
             >
               {resetButtonText}
             </button>
           )}
         </div>
       </form>
-
-      {/* Error Alert */}
-      {errorMessage && (
-        <Alert
-          type="error"
-          message={errorMessage}
-          duration={4000}
-          onClose={onErrorClose}
-        />
-      )}
-
-      {/* Success Alert */}
-      {successMessage && (
-        <Alert
-          type="success"
-          message={successMessage}
-          duration={2000}
-          onClose={onSuccessClose}
-        />
-      )}
     </div>
+
   );
 };
 

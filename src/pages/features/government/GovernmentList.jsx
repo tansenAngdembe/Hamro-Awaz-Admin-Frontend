@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import api from "../../../api/axios";
+import api from "../../../api/axios.js";
 import { useNavigate } from "react-router-dom";
 import ReusableList from "../../../components/list/ReusbaleList.jsx";
 import Swal from "sweetalert2";
 import { StatusConstant } from "../../../constants/Constant.js";
 
-const VendorList = () => {
+const GovernmentList = () => {
   const navigate = useNavigate();
 
   const [admins, setAdmins] = useState([]);
@@ -18,16 +18,13 @@ const VendorList = () => {
   const columns = [
     {
       header: "Name",
-      accessor: "businessName",
+      accessor: "governmentName",
     },
     {
-      header: "Owner",
-      accessor: "businessOwnerName",
+      header: "Code",
+      accessor: "code",
     },
-    {
-      header: "Registration Number",
-      accessor: "registrationNumber",
-    },
+    
     {
       header: "District",
       accessor: "district.districtName",
@@ -38,10 +35,10 @@ const VendorList = () => {
     },
   ];
 
-  const fetchVendorList = async ({ pageSize, firstRow, page }) => {
+  const fetchGovernmentList = async ({ pageSize, firstRow, page }) => {
     try {
       setLoading(true);
-      const response = await api.post("/vendor/list", {
+      const response = await api.post("/municipality/list", {
         pageSize,
         firstRow,
       });
@@ -86,11 +83,11 @@ const VendorList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         api
-          .post("/vendor/block", { uniqueId, remarks: result.value.remarks })
+          .post("/authority/block", { uniqueId, remarks: result.value.remarks })
           .then((response) => {
             if (response.data.code == 200) {
               Swal.fire("Success", response.data.message, "success");
-              fetchVendorList({ pageSize: 10, firstRow: 0, page: 1 });
+              fetchGovernmentList({ pageSize: 10, firstRow: 0, page: 1 });
             } else {
               Swal.fire("Error", response.data.message, "error");
             }
@@ -128,11 +125,11 @@ const VendorList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         api
-          .post("/vendor/unblock", { uniqueId, remarks: result.value.remarks })
+          .post("/authority/unblock", { uniqueId, remarks: result.value.remarks })
           .then((response) => {
             if (response.data.code == 200) {
               Swal.fire("Success", response.data.message, "success");
-              fetchVendorList({ pageSize: 10, firstRow: 0, page: 1 });
+              fetchGovernmentList({ pageSize: 10, firstRow: 0, page: 1 });
             } else {
               Swal.fire("Error", response.data.message, "error");
             }
@@ -170,7 +167,7 @@ const VendorList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         api
-          .post("/vendor/delete", { uniqueId, remarks: result.value.remarks })
+          .post("/authority/delete", { uniqueId, remarks: result.value.remarks })
           .then((response) => {
             if (response.data.code == 200) {
               Swal.fire("Deleted!", response.data.message, "success");
@@ -225,7 +222,7 @@ const VendorList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         api
-          .post("/vendor/increaseCommission", { uniqueId, remarks: result.value.remarks,commissionPercent: result.value.commissionPercent })
+          .post("/government/increaseCommission", { uniqueId, remarks: result.value.remarks,commissionPercent: result.value.commissionPercent })
           .then((response) => {
             if (response.data.code == 200) {
               Swal.fire("Success!", response.data.message, "success");
@@ -244,11 +241,11 @@ const VendorList = () => {
   const menuActions = [
     {
       label: "View",
-      onClick: (row) => navigate(`/vendor/view/${row.uniqueId}`),
+      onClick: (row) => navigate(`/authority/view/${row.uniqueId}`),
     },
     {
       label: "Edit",
-      onClick: (row) => navigate(`/vendor/edit/${row.uniqueId}`),
+      onClick: (row) => navigate(`/authority/edit/${row.uniqueId}`),
     },
     {
       label: "In_Comm",
@@ -274,24 +271,24 @@ const VendorList = () => {
   };
 
   const handleAddVendor = () => {
-    navigate("/vendor/create");
+    navigate("/authority/create");
   };
 
   return (
     <ReusableList
       // Required props
-      title="VENDOR LIST"
-      subtitle="Manage Goal post Vendor Admins"
+      title="MUNICIPALITY LIST"
+      subtitle="Manage Municipality Details"
       columns={columns}
       data={admins}
       loading={loading}
       // API/Data props
-      fetchData={fetchVendorList}
+      fetchData={fetchGovernmentList}
       totalData={totalData}
       // Action props
       onBack={handleBackClick}
       onAdd={handleAddVendor}
-      addButtonText="Create Vendor"
+      addButtonText="Add Municipality"
       menuActions={menuActions}
       // Alert props
       successMessage={successMessage}
@@ -305,4 +302,4 @@ const VendorList = () => {
   );
 };
 
-export default VendorList;
+export default GovernmentList;

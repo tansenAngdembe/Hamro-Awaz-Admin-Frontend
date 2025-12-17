@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import api from "../../../api/axios.js";
 import ReusableForm from "../../../components/form/ReusbaleForm.jsx";
 
-const CreateVendor = () => {
+const CreateGovernment = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -18,10 +18,9 @@ const CreateVendor = () => {
 
 
     const initialData = {
-        businessName: "",
-        businessOwnerName: "",
-        registrationNumber: "",
-        panNumber: "",
+        governmentName: "",
+        email: "",
+        code: "",
         description: "",
         provinceId: "",
         districtId: "",
@@ -30,14 +29,10 @@ const CreateVendor = () => {
         latitude: "",
         longitude: "",
         address: "",
-        openingTime: "",
-        closingTime: "",
-        commissionPercent: 0,
-        vendorAdminFullName: "",
-        vendorAdminUsername: "",
-        vendorAdminEmail: "",
-        vendorAdminMobileNumber: "",
-        vendorAdminAddress: "",
+        authorityAdminFullName: "",
+        authorityAdminEmail: "",
+        authorityAdminPhoneNumber: "",
+        authorityAdminAddress: "",
     };
 
     const fetchProvince = () => {
@@ -125,26 +120,20 @@ const CreateVendor = () => {
     // Form fields configuration
     const formFields = [
         {
-            name: "businessName",
-            label: "Business Name",
+            name: "governmentName",
+            label: "Municipality Name",
             type: "text",
             required: true,
         },
         {
-            name: "businessOwnerName",
-            label: "Business Owner Name",
-            type: "text",
+            name: "email",
+            label: "Municipality email",
+            type: "email",
             required: true,
         },
         {
-            name: "registrationNumber",
-            label: "Registration Number",
-            type: "text",
-            required: true,
-        },
-        {
-            name: "panNumber",
-            label: "PAN Number",
+            name: "code",
+            label: "Code Number",
             type: "text",
             required: true,
         },
@@ -195,68 +184,33 @@ const CreateVendor = () => {
             required: true,
         },
         {
-            name: "latitude",
-            label: "Latitude",
-            type: "text",
-            required: false,
-        },
-        {
-            name: "longitude",
-            label: "Longitude",
-            type: "text",
-            required: false,
-        },
-        {
             name: "address",
             label: "Address",
             type: "text",
             required: true,
         },
+
         {
-            name: "openingTime",
-            label: "Opening Time",
-            type: "time",
-            required: true,
-        },
-        {
-            name: "closingTime",
-            label: "Closing Time",
-            type: "time",
-            required: true,
-        },
-        {
-            name: "commissionPercent",
-            label: "Commission (%)",
-            type: "number",
-            required: true,
-        },
-        {
-            name: "vendorAdminFullName",
-            label: "Admin Full Name",
+            name: "authorityAdminFullName",
+            label: "Authority Admin User Full Name",
             type: "text",
             required: true,
         },
         {
-            name: "vendorAdminUsername",
-            label: "Admin User Name",
-            type: "text",
-            required: true,
-        },
-        {
-            name: "vendorAdminEmail",
-            label: "Admin Email",
+            name: "authorityAdminEmail",
+            label: "Authority  Admin User Email",
             type: "email",
             required: true,
         },
         {
-            name: "vendorAdminMobileNumber",
-            label: "Admin Mobile Number",
-            type: "text",
+            name: "authorityAdminPhoneNumber",
+            label: "Authority Admin Phone Number",
+            type: "number",
             required: true,
         },
         {
-            name: "vendorAdminAddress",
-            label: "Admin Address",
+            name: "authorityAdminAddress",
+            label: "Authority Admin Address",
             type: "text",
             required: true,
         },
@@ -267,28 +221,24 @@ const CreateVendor = () => {
             required: false,
         },
         {
-            name: "logoFile",
-            label: "Business Logo",
-            type: "file",
-            required: false,
-        },
-        {
             name: "documentFile",
             label: "Registration Document",
             type: "file",
             required: false,
-        }
+        },
+        {
+            name: "location",
+            label: "Municipality Location",
+            type: "map",
+            colSpan: "col-span-full",
+            helpText: "Click on map to select exact location",
+        },
     ];
 
     const handleSubmit = (formData) => {
         setLoading(true);
         const formDataToSend = new FormData();
-        if (formData.logoFile?.length > 0) {
-            formData.logoFile.forEach((file) => {
-                formDataToSend.append("logoFile", file);
-            });
-        }
-           if (formData.documentFile?.length > 0) {
+        if (formData.documentFile?.length > 0) {
             formData.documentFile.forEach((file) => {
                 formDataToSend.append("documentFile", file);
             });
@@ -296,14 +246,14 @@ const CreateVendor = () => {
 
 
         formDataToSend.append(
-            "vendor",
+            "municipality",
             new Blob(
                 [
                     JSON.stringify({
-                        businessName: formData.businessName,
-                        businessOwnerName: formData.businessOwnerName,
-                        registrationNumber: formData.registrationNumber,
-                        panNumber: formData.panNumber,
+                        governmentName: formData.governmentName,
+                        email: formData.email,
+                        code: formData.code,
+                        documentUrl: formData.documentUrl,
                         description: formData.description,
                         provinceId: formData.provinceId,
                         districtId: formData.districtId,
@@ -312,22 +262,19 @@ const CreateVendor = () => {
                         latitude: formData.latitude,
                         longitude: formData.longitude,
                         address: formData.address,
-                        openingTime: formData.openingTime,
-                        closingTime: formData.closingTime,
-                        commissionPercent: formData.commissionPercent,
-                        vendorAdminFullName: formData.vendorAdminFullName,
-                        vendorAdminUsername: formData.vendorAdminUsername,
-                        vendorAdminEmail: formData.vendorAdminEmail,
-                        vendorAdminMobileNumber: formData.vendorAdminMobileNumber,
-                        vendorAdminAddress: formData.vendorAdminAddress,
+                        authorityAdminFullName: formData.authorityAdminFullName,
+                        authorityAdminEmail: formData.authorityAdminEmail,
+                        authorityAdminPhoneNumber: formData.authorityAdminPhoneNumber,
+                        authorityAdminAddress: formData.authorityAdminAddress
                     }),
                 ],
                 { type: "application/json" }
             )
         );
+        console.log(formData)
 
         api
-            .post("/vendor/create", formDataToSend)
+            .post("/municipality/create", formDataToSend)
             .then((response) => {
                 if (response.data.code == 200) {
                     Swal.fire({
@@ -337,10 +284,23 @@ const CreateVendor = () => {
                         confirmButtonColor: "#5569FE",
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            navigate("/vendor");
+                            navigate("/authority");
                         }
                     });
-                } else {
+                } else if( response.data.code == 442){
+                     Swal.fire({
+                        title: "Failed",
+                        text: response.data.message,
+                        icon: "failed",
+                        confirmButtonColor: "#5569FE",
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            navigate("/authority");
+                        }
+                    });
+
+                }
+                 else {
                     setErrorMessage(response.data.message);
                 }
             })
@@ -367,8 +327,8 @@ const CreateVendor = () => {
 
     return (
         <ReusableForm
-            title="CREATE VENDOR"
-            description="Create Vendor"
+            title="Create Government and Authority User"
+            description="Create Governement and Admin User"
             fields={formFields}
             onSubmit={handleSubmit}
             onReset={handleReset}
@@ -386,4 +346,4 @@ const CreateVendor = () => {
     );
 };
 
-export default CreateVendor;
+export default CreateGovernment;
