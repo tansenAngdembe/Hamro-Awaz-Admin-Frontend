@@ -2,3 +2,10 @@
 .shadow-bottom {
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+@theme
+{
+  --color-primary : #0C1F2A;
+  --color-secondary : #07344e;
+  --color-bgPrimary : #ECF0F5;
+}

@@ -52,7 +52,7 @@ const Sidebar = () => {
   return (
     <div
       className={`
-        h-screen bg-[#0C1F2A] text-white shadow-xl transition-all duration-300 
+        h-screen bg-primary text-white shadow-xl transition-all duration-300 
         ${collapsed ? "w-20" : "w-64"}
       `}
     >
@@ -60,7 +60,7 @@ const Sidebar = () => {
       {errorMessage && <ErrorAlert message={errorMessage} />}
 
       {/* Top Section */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <div className="flex items-center justify-between p-3 border-b border-white/10">
         {!collapsed && (
           <div className="flex items-center gap-2">
             <img
@@ -100,7 +100,7 @@ const Sidebar = () => {
       )}
 
       {/* Navigation Items */}
-      <div className="mt-2">
+      <div className="mt-1">
         {loading ? (
           <p className="text-gray-400 pl-5">Loading...</p>
         ) : (
@@ -120,7 +120,7 @@ const Sidebar = () => {
                   >
                     {({ isActive }) => (
                       <SidebarItem
-                        icon={<IconComponent size={20} />}
+                        icon={<IconComponent size={15} />}
                         label={item.name}
                         active={isActive}
                         collapsed={collapsed}

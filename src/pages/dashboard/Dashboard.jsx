@@ -12,7 +12,6 @@ import ViewProfile from "../features/admin/ViewProfile";
 import ProfileMenu from "../../components/menus/ProfileMenu";
 import api from "../../api/axios";
 import ReusableFormImplementation from "../../components/form/ReusableFormImplementation";
-import ViewVendor from "../features/government/ViewVendor";
 import ViewClient from "../features/clients/ViewClient";
 import PaymentList from "../features/payments/PaymentList";
 import EditProfile2 from "../features/admin/EditProfile2";
@@ -41,6 +40,7 @@ import Advertisement from "../settings/advertisement/AdvertisementList";
 import CreateAdvertisement from "../settings/advertisement/CreateAdvertisement";
 import GovernmentList from "../features/government/GovernmentList";
 import CreateGovernment from "../features/government/CreateGovernment";
+import ViewDetails from "../features/government/ViewDetails";
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [admin, setAdmin] = useState([]);
@@ -126,11 +126,11 @@ const Dashboard = () => {
             />
           </div>
         </header>
-        <header className="hidden lg:block z-10 bg-white shadow-sm">
+        <header className="hidden lg:block z-10 bg-bgPrimary shadow-sm">
           <Header profile={admin} />
-          <div className="w-full h-px bg-gray-200"></div>
+          <div className="w-full h-px bg-bgPrimary"></div>
         </header>
-        <main className="flex-1 p-4 overflow-y-auto bg-gray-50">
+        <main className="flex-1 p-4 overflow-y-auto bg-bgPrimary">
           <Routes>
             <Route path="/activity-log" element={<ActivityList />} />
             <Route path="form" element={<ReusableFormImplementation />} />
@@ -143,7 +143,7 @@ const Dashboard = () => {
 
 
             <Route path="authority" element={<GovernmentList />} />
-            <Route path="authority/view/:uniqueId" element={<ViewVendor />} />
+            <Route path="authority/view" element={<ViewDetails />} />
             <Route path="/authority/create" element={<CreateGovernment />} />
             <Route path="/authority/users/create/:uniqueId" element={<CreateUserVendor />} />
             <Route path="authority/edit/:uniqueId" element={<EditVendor />} />

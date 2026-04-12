@@ -38,12 +38,13 @@ const AdminList = () => {
     },
   ];
 
-  const fetchAdminList = async ({ pageSize, firstRow, page }) => {
+  const fetchAdminList = async ({ pageSize, firstRow, page,param }) => {
     try {
       setLoading(true);
       const response = await api.post("/list", {
         pageSize,
         firstRow,
+        param
       });
 
       if (response.data.code === 200) {
@@ -190,7 +191,7 @@ const AdminList = () => {
   const menuActions = [
     {
       label: "View",
-      onClick: (row) => navigate(`/admin/view/${row.uniqueId}`),
+      onClick: (row) => navigate(`/authority/view`,{state: row.uniqueId}),
     },
     {
       label: "Edit",
@@ -243,6 +244,12 @@ const AdminList = () => {
       // Pagination props
       initialRowsPerPage={10}
       rowsPerPageOptions={[5, 10, 25]}
+      searchFields={[
+        { key: "name", backendKey: "name", label: "Name", type: "text" },
+        { key: "email", backendKey: "email", label: "Email", type: "text" },
+        { key: "mobileNumber", backendKey: "mobileNumber", label: "Mobile Number", type: "text" },
+        { key: "status", backendKey: "status", label: "Status", type: "select", options: ["ACTIVE", "DELETED","PENDING","BLOCKED"] }
+      ]}
     />
   );
 };

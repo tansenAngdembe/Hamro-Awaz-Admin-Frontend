@@ -7,6 +7,14 @@ import { StatusConstant } from "../../../constants/Constant.js";
 
 const GovernmentList = () => {
   const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+    governmentName: "",
+    status: "",
+  });
+
+  const [page, setPage] = useState(1);
+  const [ROWS_PER_PAGE, setRowsPerPage] = useState(10);
+
 
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +32,7 @@ const GovernmentList = () => {
       header: "Code",
       accessor: "code",
     },
-    
+
     {
       header: "District",
       accessor: "district.districtName",
@@ -35,18 +43,19 @@ const GovernmentList = () => {
     },
   ];
 
-  const fetchGovernmentList = async ({ pageSize, firstRow, page }) => {
+
+  const fetchGovernmentList = async ({ pageSize, firstRow, page, param }) => {
     try {
       setLoading(true);
       const response = await api.post("/municipality/list", {
         pageSize,
         firstRow,
+        param // <-- param object sent to backend
       });
 
       if (response.data.code === 200) {
         setAdmins(response.data.data.records);
         setTotalData(response.data.data.total);
-        setSuccessMessage(response.data.message);
       } else {
         setErrorMessage(response.data.message);
       }
@@ -56,6 +65,12 @@ const GovernmentList = () => {
       setLoading(false);
     }
   };
+
+
+
+  useEffect(() => {
+    fetchGovernmentList();
+  }, [page, ROWS_PER_PAGE, filters]);
 
   const handleBlock = (uniqueId) => {
     Swal.fire({
@@ -83,7 +98,7 @@ const GovernmentList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         api
-          .post("/authority/block", { uniqueId, remarks: result.value.remarks })
+          .post("/municipality/block", { uniqueId, remarks: result.value.remarks })
           .then((response) => {
             if (response.data.code == 200) {
               Swal.fire("Success", response.data.message, "success");
@@ -125,7 +140,7 @@ const GovernmentList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         api
-          .post("/authority/unblock", { uniqueId, remarks: result.value.remarks })
+          .post("/municipality/unblock", { uniqueId, remarks: result.value.remarks })
           .then((response) => {
             if (response.data.code == 200) {
               Swal.fire("Success", response.data.message, "success");
@@ -167,65 +182,11 @@ const GovernmentList = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         api
-          .post("/authority/delete", { uniqueId, remarks: result.value.remarks })
+          .post("/municipality/delete", { uniqueId, remarks: result.value.remarks })
           .then((response) => {
             if (response.data.code == 200) {
               Swal.fire("Deleted!", response.data.message, "success");
               fetchAdminList({ pageSize: 10, firstRow: 0, page: 1 });
-            } else {
-              Swal.fire("Error", response.data.message, "error");
-            }
-          })
-          .catch(() => {
-            Swal.fire("Error", "Something went wrong on server", "error");
-          });
-      }
-    });
-  };
-  const increaseCommission = (uniqueId) => {
-    Swal.fire({
-      title: "Are you sure you want to increase commission for this account?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#00425A",
-      cancelButtonColor: "#FC0000",
-      confirmButtonText: "Update",
-      html: `
-      <textarea 
-        id="increaseReason" 
-        class="swal2-textarea" 
-        placeholder="Enter reason for increasing commission." 
-        rows="3" 
-        style="width: 85%; resize: none; height: 100px; font-size: 15px; text-align: left;"></textarea>
-
-        <input 
-  type="number" 
-  id="commissionPercent" 
-  class="swal2-input" 
-  placeholder="Enter commission percent" 
-  min="0.01" 
-  step="0.01" 
-  style="width: 85%; font-size: 15px; text-align: left;" 
-/>
-    `,
-      preConfirm: () => {
-        const remarks = Swal.getPopup().querySelector("#increaseReason").value;
-        const commissionPercent = Swal.getPopup().querySelector("#commissionPercent").value;
-        if (!remarks ) {
-          Swal.showValidationMessage("Please enter a reason for increasing commission.");
-        }
-          if (!commissionPercent ) {
-          Swal.showValidationMessage("Please enter commission percent.");
-        }
-        return { remarks, commissionPercent };
-      },
-    }).then((result) => {
-      if (result.isConfirmed) {
-        api
-          .post("/government/increaseCommission", { uniqueId, remarks: result.value.remarks,commissionPercent: result.value.commissionPercent })
-          .then((response) => {
-            if (response.data.code == 200) {
-              Swal.fire("Success!", response.data.message, "success");
             } else {
               Swal.fire("Error", response.data.message, "error");
             }
@@ -241,15 +202,11 @@ const GovernmentList = () => {
   const menuActions = [
     {
       label: "View",
-      onClick: (row) => navigate(`/authority/view/${row.uniqueId}`),
+      onClick: (row) => navigate(`/authority/view`, { state: row.uniqueId }),
     },
     {
       label: "Edit",
       onClick: (row) => navigate(`/authority/edit/${row.uniqueId}`),
-    },
-    {
-      label: "In_Comm",
-      onClick: (row) => increaseCommission(row.uniqueId),
     },
     {
       label: (row) =>
@@ -298,6 +255,13 @@ const GovernmentList = () => {
       // Pagination props
       initialRowsPerPage={10}
       rowsPerPageOptions={[5, 10, 25]}
+      searchFields={[
+        { key: "province", backendKey: "province", label: "Province", type: "text" },
+        { key: "district", backendKey: "district", label: "District", type: "text" },
+        { key: "governmentName", backendKey: "governmentName", label: "Name", type: "text" },
+        { key: "code", backendKey: "code", label: "Code", type: "text" },
+        { key: "status", backendKey: "status", label: "Status", type: "select", options: ["ACTIVE", "DELETED", "PENDING", "BLOCKED"] }
+      ]}
     />
   );
 };

@@ -4,6 +4,7 @@ import Alert from "../alerts/Alert";
 import TableMenu from "../menus/TableMenu.jsx";
 import Loader from "../loader/Loader.jsx";
 import { formatDate } from "../../utils/globalHelpFunction.jsx";
+import DataNotFound from "../loader/DataNotFound.jsx";
 
 const ReusableList = ({
   // Required props
@@ -38,6 +39,8 @@ const ReusableList = ({
   showAddButton = true,
   showBackButton = true,
   rowsPerPageOptions = [5, 10, 25],
+  searchFields = []
+
 }) => {
   const [ROWS_PER_PAGE, setRowsPerPage] = useState(initialRowsPerPage);
   const [page, setPage] = useState(1);
@@ -55,34 +58,43 @@ const ReusableList = ({
     }
   }, [totalData, ROWS_PER_PAGE]);
 
-  useEffect(() => {
-    if (fetchDataRef.current) {
-      fetchDataRef.current({
-        pageSize: ROWS_PER_PAGE,
-        firstRow: (page - 1) * ROWS_PER_PAGE,
-        page,
-      });
-    }
-  }, [page, ROWS_PER_PAGE]); // Remove fetchData from dependency array
 
   const handleRowsPerPageChange = (newRowsPerPage) => {
     setPage(1);
     setRowsPerPage(Number(newRowsPerPage));
   };
 
-  const renderCellContent = (row, column) => {
-    if (column.render) {
-      return column.render(row);
-    }
+ const renderCellContent = (row, column) => {
+  if (column.render) {
+    return column.render(row);
+  }
 
-    const value = column.accessor
-      .split(".")
-      .reduce((obj, key) => obj?.[key], row);
-    if (column.type === "date" && value) {
-      return formatDate(value);
+  const value = column.accessor
+    .split(".")
+    .reduce((obj, key) => obj?.[key], row);
+
+  if (column.type === "date" && value) {
+    return formatDate(value);
+  }
+
+  // Boolean handling
+  if (column.type === "boolean") {
+    if (value === true) {
+      return (
+        <span style={{ color: "green", fontWeight: 500 }}>
+          ✔ Verified
+        </span>
+      );
     }
-    return value || "";
-  };
+    return (
+      <span style={{ color: "gray" }}>
+        Not Verified
+      </span>
+    );
+  }
+
+  return value || "N/A";
+};
 
   const getMenuActionsForRow = (row) => {
     return menuActions.map((action) => ({
@@ -92,21 +104,70 @@ const ReusableList = ({
     }));
   };
 
+  // ---- Internal filter state ----
+  const [filters, setFilters] = useState(
+    searchFields.reduce((acc, field) => ({ ...acc, [field.key]: "" }), {})
+  );
+
+  // ---- Debounce text fields ----
+  const [debouncedFilters, setDebouncedFilters] = useState(filters);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const textFields = searchFields
+        .filter(f => f.type === "text")
+        .reduce((acc, f) => ({ ...acc, [f.key]: filters[f.key] }), {});
+      const merged = { ...filters, ...textFields };
+      setDebouncedFilters(merged);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [filters]);
+
+  // ---- Build backend param object dynamically ----
+  // --- Build backend param object dynamically ---
+  const buildBackendParam = (currentFilters = filters) => {
+    const param = {};
+    searchFields.forEach(field => {
+      const value = currentFilters[field.key];
+      if (value && value !== "") {
+        param[field.backendKey || field.key] = value; // use backendKey if provided
+      }
+    });
+    return param;
+  };
+
+
+  // ---- Fetch data whenever filters change ----
+  useEffect(() => {
+    if (fetchDataRef.current) {
+      fetchDataRef.current({
+        pageSize: ROWS_PER_PAGE,
+        firstRow: (page - 1) * ROWS_PER_PAGE,
+        page,
+        param: buildBackendParam(debouncedFilters), // <-- send param
+      });
+    }
+  }, [page, ROWS_PER_PAGE, debouncedFilters]);
+
+
+
+
+
+
   return (
     <div className={className}>
-      <div className="p-6 overflow-x-auto bg-white">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
+      <div className="p-2 overflow-x-auto bg-bgPrimary">
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center gap-1">
 
             {showBackButton && title && (
               <MoveLeft onClick={onBack} className="cursor-pointer" />
             )}
-            <h2 className="text-xl font-semibold">{title}</h2>
+            <h4 className=" font-semibold">{title}</h4>
           </div>
           {showAddButton && onAdd && (
             <button
               onClick={onAdd}
-              className="flex items-center gap-1 bg-[#2c9d2c] text-white px-2 py-2 hover:bg-green-700 transition-colors cursor-pointer shadow-sm"
+              className="flex items-center gap-1 bg-primary text-bgPrimary px-1 py-1 hover:bg-secondary transition-colors cursor-pointer shadow-sm"
             >
               <CirclePlus size={18} />
               <span className="text-sm font-semibold">{addButtonText}</span>
@@ -114,16 +175,15 @@ const ReusableList = ({
           )}
         </div>
 
-        {subtitle && <p className="text-sm text-gray-500 mb-4">{subtitle}</p>}
+        {subtitle && <p className="text-sm text-gray-500 mb-2">{subtitle}</p>}
 
-        <div className="w-full h-px bg-gray-200 mb-4"></div>
+        <div className="w-full h-px bg-gray-200 mb-2"></div>
 
-        {loading ? (
-          <Loader />
-        ) : (
-          <div>
+
+        <div>
+          <div className="flex justify-between rounded shadow-sm border border-bgPrimary p-1 mb-2">
             {showPagination && (
-              <div className="flex items-center gap-2 mb-5 text-[14px] text-gray-700">
+              <div className="flex items-center gap-2  text-[14px] text-gray-700">
                 <span>Show</span>
                 <select
                   value={ROWS_PER_PAGE}
@@ -139,28 +199,106 @@ const ReusableList = ({
                 <span>entries</span>
               </div>
             )}
+            <div className="flex flex-wrap gap-3 ">
+              {searchFields.map((field) => {
+                if (field.type === "text" || field.type === "email") {
+                  return (
+                    <div key={field.key} className="relative">
+                      <input
+                        type={field.type}
+                        placeholder={`Search by ${field.label}`}
+                        value={filters[field.key]}
+                        onChange={(e) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            [field.key]: e.target.value,
+                          }))
+                        }
+                        className="
+              h-10 w-56 rounded-lg border border-gray-300 bg-gray-50
+              px-4 text-sm text-gray-800
+              placeholder-gray-400
+              focus:border-secondary focus:bg-white focus:outline-none
+              focus:ring-2 focus:ring-blue-100
+              transition
+            "
+                      />
+                    </div>
+                  );
+                }
 
-            <table className="w-full text-sm border border-gray-200 rounded-md overflow-x-auto">
-              <thead className="bg-gray-100 text-[14px] uppercase">
+                if (field.type === "select") {
+                  return (
+                    <div key={field.key} className="relative">
+                      <select
+                        value={filters[field.key]}
+                        onChange={(e) => {
+                          setFilters((prev) => ({
+                            ...prev,
+                            [field.key]: e.target.value,
+                          }));
+                          setPage(1);
+                        }}
+                        className="
+              h-10 w-56 rounded-lg border border-gray-300 bg-gray-50
+              px-4 pr-8 text-sm text-gray-800
+              focus:border-secondary focus:bg-white focus:outline-none
+              focus:ring-2 focus:ring-blue-100
+              transition appearance-none cursor-pointer
+            "
+                      >
+                        <option value="">All {field.label}</option>
+                        {field.options.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        ▼
+                      </span>
+                    </div>
+                  );
+                }
+
+                return null;
+              })}
+            </div>
+          </div>
+          {/* {
+            loading ? (
+              <Loader />
+            ) : ( */}
+          <table className="w-full text-sm border border-gray-200 rounded-md overflow-x-auto">
+            <thead className="bg-gray-100 text-[14px] uppercase">
+              <tr>
+                {menuActions.length > 0 && (
+                  <th className="px-3 py-3 text-left"></th>
+                )}
+                
+                {columns.map((column, idx) => (
+                  <th key={idx} className="px-4 py-3 text-left border-white border-l-4">
+                    {column.header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.length === 0 && !loading ? (
                 <tr>
-                  {menuActions.length > 0 && (
-                    <th className="px-4 py-3 text-left"></th>
-                  )}
-                  {columns.map((column, idx) => (
-                    <th key={idx} className="px-4 py-3 text-left">
-                      {column.header}
-                    </th>
-                  ))}
+                  <td colSpan={columns.length + (menuActions.length ? 1 : 0)}>
+                    <DataNotFound />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {data.map((row, idx) => (
+              ) : (
+                data.map((row, idx) => (
                   <tr
                     key={row.uniqueId || idx}
                     className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
                   >
                     {menuActions.length > 0 && (
-                      <td className="px-4 py-0 absolute">
+                      <td className="px-3 py-0 absolute">
                         <TableMenu items={getMenuActionsForRow(row)} />
                       </td>
                     )}
@@ -170,62 +308,67 @@ const ReusableList = ({
                       </td>
                     ))}
                   </tr>
+                )))
+              }
+            </tbody>
+          </table>
+
+          {/* } */}
+
+
+          {/* )} */}
+          {showPagination && totalData > 0 && (
+            <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
+              <span>
+                Showing {ROWS_PER_PAGE * (page - 1) + 1} to{" "}
+                {Math.min(page * ROWS_PER_PAGE, totalData)} of {totalData}{" "}
+                entries
+              </span>
+
+              <div className="space-x-1">
+                <button
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPage(i + 1)}
+                    className={`px-3 py-1 border rounded ${page === i + 1
+                      ? "bg-primary text-white"
+                      : "bg-white hover:bg-gray-100"
+                      }`}
+                  >
+                    {i + 1}
+                  </button>
                 ))}
-              </tbody>
-            </table>
 
-            {showPagination && totalData > 0 && (
-              <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-                <span>
-                  Showing {ROWS_PER_PAGE * (page - 1) + 1} to{" "}
-                  {Math.min(page * ROWS_PER_PAGE, totalData)} of {totalData}{" "}
-                  entries
-                </span>
-
-                <div className="space-x-1">
-                  <button
-                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                    disabled={page === 1}
-                    className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50"
-                  >
-                    Previous
-                  </button>
-
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPage(i + 1)}
-                      className={`px-3 py-1 border rounded ${page === i + 1
-                          ? "bg-[#2c9d2c] text-white"
-                          : "bg-white hover:bg-gray-100"
-                        }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                    disabled={page === totalPages}
-                    className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50"
-                  >
-                    Next
-                  </button>
-                </div>
+                <button
+                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1 border rounded bg-white hover:bg-gray-100 disabled:opacity-50"
+                >
+                  Next
+                </button>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
+
       </div>
 
-      {successMessage && (
+      {/* {successMessage && (
         <Alert
           type="success"
           message={successMessage}
           duration={1000}
           onClose={onClearSuccess}
         />
-      )}
+      )} */}
 
       {errorMessage && (
         <Alert

@@ -27,7 +27,30 @@ const ClientList = () => {
         {
             header: "Number",
             accessor: "phoneNumber",
-        },        
+        }, 
+        {
+            header: "Municipality",
+            accessor: "municipality",
+        },   
+        {
+            header : "Address",
+            accessor : "address"
+        },   
+        {
+            header: "Registered Date",
+            accessor: "registeredDate",
+            type: "date",
+        }, 
+        {
+            header: "Last Login",
+            accessor: "lastLoggedInTime",
+            type: "date",
+        },
+        {
+            header: "Is Verified",
+            accessor: "isUserVerified",
+            type: "boolean",
+        },
         {
             header: "Status",
             accessor: "status.name",
@@ -37,7 +60,7 @@ const ClientList = () => {
     const fetchClientList = async ({ pageSize, firstRow, page }) => {
         try {
             setLoading(true);
-            const response = await api.post("/users/list", {
+            const response = await api.post("/d/list", {
                 pageSize,
                 firstRow,
             });

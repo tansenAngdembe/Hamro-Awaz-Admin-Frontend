@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import api from "../../../../api/axios.js";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ReusableList from "../../../../components/list/ReusbaleList.jsx";
 import Swal from "sweetalert2";
 import { StatusConstant } from "../../../../constants/Constant.js";
 import ViewVendorUser from "./ViewVendorUser.jsx";
 import { X } from "lucide-react";
 
-const VendorUserList = () => {
+const AuthorityUserList = () => {
     const navigate = useNavigate();
-    const { uniqueId } = useParams();
-
+    const location = useLocation();
+    const uniqueId = location.state;
     const [users, setusers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
@@ -47,11 +47,11 @@ const VendorUserList = () => {
     const fetchClientList = async ({ pageSize, firstRow, page }) => {
         try {
             setLoading(true);
-            const response = await api.post("/vendor/users/list", {
+            const response = await api.post("/authorityUser/list", {
                 pageSize,
                 firstRow,
                 param: {
-                    vendorUniqueId: uniqueId
+                    municipalityUniqueId: uniqueId
                 }
 
             });
@@ -266,7 +266,7 @@ const VendorUserList = () => {
                 // Action props
                 onBack={handleBackClick}
                 onAdd={handleAddUser}
-                addButtonText="Create Vendor Admin"
+                addButtonText="Create Authority Admin"
                 menuActions={menuActions}
                 // Alert props
                 successMessage={successMessage}
@@ -281,4 +281,4 @@ const VendorUserList = () => {
     );
 };
 
-export default VendorUserList;
+export default AuthorityUserList;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import icon from "../../assets/loginicon.jpg";
+import icon from "../../assets/user-gear.png";
 import modalBg from "../../assets/loginPost.jpg";
 import { loginUser } from "./authService";
 import { Navigate } from "react-router-dom";
@@ -40,14 +40,14 @@ const Login = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-white relative"
+      className="min-h-screen flex items-center justify-center bg-bgPrimary relative"
     // style={{ backgroundImage: `url(${modalBg})` }}
     >
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
 
       {/* Login Card */}
-      <div className="relative z-10 w-full max-w-md bg-white/80 backdrop-blur-md shadow-2xl rounded p-8 animate-fadeIn">
+      <div className="relative z-10 w-full max-w-md bg-bgPrimary/80 backdrop-blur-md shadow-2xl rounded p-8 animate-fadeIn">
         {/* Branding */}
         <div className="flex flex-col items-center mb-6">
           <img src={icon} alt="logo" className="h-16 mb-2 drop-shadow-md" />
@@ -73,7 +73,7 @@ const Login = () => {
                 peer block w-full px-3 pt-5 pb-2 text-gray-900 
                 bg-white border border-gray-300 rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-[#1F8A3A]/30 
-                focus:border-[#1F8A3A] transition
+                focus:border-secondary transition
               "
             />
             <label
@@ -83,7 +83,7 @@ const Login = () => {
                 transition-all duration-200 pointer-events-none
                 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 
                 peer-placeholder-shown:text-base 
-                peer-focus:top-2 peer-focus:text-sm peer-focus:text-[#1F8A3A]
+                peer-focus:top-2 peer-focus:text-sm peer-focus:text-secondary
               "
             >
               Email Address
@@ -104,7 +104,7 @@ const Login = () => {
                 peer block w-full px-3 pt-5 pb-2 text-gray-900 
                 bg-white border border-gray-300 rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-[#1F8A3A]/30 
-                focus:border-[#1F8A3A] transition
+                focus:border-secondary transition
               "
             />
             <label
@@ -114,7 +114,7 @@ const Login = () => {
                 transition-all duration-200 pointer-events-none
                 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 
                 peer-placeholder-shown:text-base 
-                peer-focus:top-2 peer-focus:text-sm peer-focus:text-[#1F8A3A]
+                peer-focus:top-2 peer-focus:text-sm peer-focus:text-secondary
               "
             >
               Password
@@ -127,8 +127,8 @@ const Login = () => {
             className={`
     w-full py-3 text-white text-[17px] font-semibold 
     rounded-lg shadow-md transition duration-300 cursor-pointer
-    bg-[#187532]
-   hover:bg-[#187525]
+    bg-primary
+   hover:bg-secondary
     disabled:opacity-60 disabled:cursor-not-allowed
   `}
           >

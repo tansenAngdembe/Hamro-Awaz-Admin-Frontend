@@ -301,7 +301,16 @@ const CreateGovernment = () => {
 
                 }
                  else {
-                    setErrorMessage(response.data.message);
+                    Swal.fire({
+                        title: "Failed",
+                        text: response.data.message,
+                        icon: "failed",
+                        confirmButtonColor: "#5569FE",
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            navigate("/authority");
+                        }
+                    });
                 }
             })
             .catch(() => {

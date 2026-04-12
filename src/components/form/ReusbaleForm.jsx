@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MoveLeft } from "lucide-react";
+import { FileText, MoveLeft } from "lucide-react";
 import Select from "react-select";
 import Alert from "../alerts/Alert";
 import config from "../../utils/config";
@@ -133,10 +133,14 @@ const ReusableForm = ({
       0,
       maxImages - images.length
     );
+
     const newImages = files.map((file) => ({
       file,
-      preview: URL.createObjectURL(file),
       name: file.name,
+      type: file.type,
+      preview: file.type.startsWith("image/")
+        ? URL.createObjectURL(file)
+        : null, // no preview for PDF
     }));
 
     const updatedImages = [...images, ...newImages];
@@ -205,10 +209,10 @@ const ReusableForm = ({
     } = field;
 
     const baseInputClass =
-      "w-full h-11 text-sm rounded-lg border border-gray-200 bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[#1a963d]/40 focus:border-[#1a963d] transition";
+      "w-full h-11 text-sm rounded border border-gray-200 bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[#1a963d]/40 focus:border-[#1a963d] transition";
 
     const baseSelectClass =
-      "w-full h-11 text-sm rounded-lg border border-gray-200 bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[#1a963d]/40 focus:border-[#1a963d] transition";
+      "w-full h-11 text-sm rounded border border-gray-200 bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[#1a963d]/40 focus:border-[#1a963d] transition";
 
     const handleFieldChange = (value) => {
       handleChange(name, value);
@@ -337,18 +341,27 @@ const ReusableForm = ({
                 >
                   ✕
                 </button>
-                <img
-                  src={img.preview}
-                  alt="preview"
-                  className="w-full h-full object-cover"
-                />
+                {img.type === "application/pdf" ? (
+                  <div className="flex flex-col items-center text-gray-600 place-content-center p-8">
+                    <FileText size={28} />
+                    <span className="text-[10px] mt-1 truncate max-w-[70px]">
+                      PDF
+                    </span>
+                  </div>
+                ) : (
+                  <img
+                    src={img.preview}
+                    alt="preview"
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             ))}
 
             <input
               id={`${name}Input`}
               type="file"
-              accept="image/*"
+              accept="image/*,application/pdf"
               multiple
               hidden
               onChange={(e) => handleImageUpload(e, name, maxImages)}
@@ -389,8 +402,8 @@ const ReusableForm = ({
                 center={[27.7172, 85.324]} // Nepal default
                 zoom={7}
                 className="h-full w-full"
-                // whenCreated={(map) => (mapRef.current = map)}
-               
+              // whenCreated={(map) => (mapRef.current = map)}
+
               >
                 <TileLayer
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -433,7 +446,7 @@ const ReusableForm = ({
 
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${className}`}>
+    <div className={`bg-white rounded shadow-sm border border-gray-200 p-4 ${className}`}>
       <div className="flex items-center gap-3 mb-3">
         {showBackButton && onBack && (
           <MoveLeft onClick={onBack} className="cursor-pointer text-gray-600 hover:text-black" />
@@ -470,10 +483,10 @@ const ReusableForm = ({
           <button
             type="submit"
             disabled={loading || !isFormValid()}
-            className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white transition
+            className={`rounded px-6 py-2.5 text-sm font-medium text-white transition
           ${loading || !isFormValid()
-                ? "bg-[#1a963d]/60 cursor-not-allowed"
-                : "bg-[#1a963d] hover:bg-[#148032]"
+                ? "bg-primary/60 cursor-not-allowed"
+                : "bg-primary hover:bg-secondary"
               }`}
           >
             {loading ? "Processing..." : submitButtonText}
@@ -483,7 +496,7 @@ const ReusableForm = ({
             <button
               type="button"
               onClick={handleReset}
-              className="rounded-lg px-6 py-2.5 text-sm font-medium border border-[#1a963d] text-[#1a963d] hover:bg-[#1a963d] hover:text-white transition"
+              className="rounded px-6 py-2.5 text-sm font-medium border border-primary text-primary hover:bg-primary hover:text-white transition cursor-pointer"
             >
               {resetButtonText}
             </button>
