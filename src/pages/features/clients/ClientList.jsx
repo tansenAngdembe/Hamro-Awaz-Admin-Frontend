@@ -27,20 +27,30 @@ const ClientList = () => {
         {
             header: "Number",
             accessor: "phoneNumber",
-        }, 
+        },
+        // In your columns definition:
         {
             header: "Municipality",
             accessor: "municipality",
-        },   
+            render: (row) => {
+                const province = row.municipality?.province?.province;
+                const district = row.municipality?.district?.districtName;
+
+                if (province && district) return `${province}, ${district}`;
+                if (province) return province;
+                if (district) return district;
+                return "N/A";
+            }
+        },
         {
-            header : "Address",
-            accessor : "address"
-        },   
+            header: "Address",
+            accessor: "address"
+        },
         {
             header: "Registered Date",
             accessor: "registeredDate",
             type: "date",
-        }, 
+        },
         {
             header: "Last Login",
             accessor: "lastLoggedInTime",
@@ -60,7 +70,7 @@ const ClientList = () => {
     const fetchClientList = async ({ pageSize, firstRow, page }) => {
         try {
             setLoading(true);
-            const response = await api.post("/d/list", {
+            const response = await api.post("/citizen/list", {
                 pageSize,
                 firstRow,
             });
@@ -240,7 +250,7 @@ const ClientList = () => {
         // navigate(-1);
         return null;
     };
-  
+
 
     return (
         <ReusableList

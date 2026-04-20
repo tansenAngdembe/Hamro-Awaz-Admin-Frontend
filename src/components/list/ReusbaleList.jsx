@@ -64,7 +64,7 @@ const ReusableList = ({
     setRowsPerPage(Number(newRowsPerPage));
   };
 
- const renderCellContent = (row, column) => {
+const renderCellContent = (row, column) => {
   if (column.render) {
     return column.render(row);
   }
@@ -77,23 +77,26 @@ const ReusableList = ({
     return formatDate(value);
   }
 
-  // Boolean handling
   if (column.type === "boolean") {
     if (value === true) {
-      return (
-        <span style={{ color: "green", fontWeight: 500 }}>
-          ✔ Verified
-        </span>
-      );
+      return <span style={{ color: "green", fontWeight: 500 }}>✔ Verified</span>;
     }
-    return (
-      <span style={{ color: "gray" }}>
-        Not Verified
-      </span>
-    );
+    return <span style={{ color: "gray" }}>Not Verified</span>;
   }
 
-  return value || "N/A";
+  if (typeof column.accessor === "function") {
+    return column.accessor(row);
+  }
+
+  // ✅ Handle plain objects — join their string values
+  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+    const display = Object.values(value)
+      .filter((v) => typeof v === "string")
+      .join(", ");
+    return display || "N/A";
+  }
+
+  return value ?? "N/A";
 };
 
   const getMenuActionsForRow = (row) => {

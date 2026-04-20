@@ -25,10 +25,8 @@ const CreateGovernment = () => {
         provinceId: "",
         districtId: "",
         localLevelId: "",
-        wardNumber: "",
         latitude: "",
         longitude: "",
-        address: "",
         authorityAdminFullName: "",
         authorityAdminEmail: "",
         authorityAdminPhoneNumber: "",
@@ -112,10 +110,10 @@ const CreateGovernment = () => {
         label: l.localLevel,
     }));
 
-    const wardOptions = wardList.map((w) => ({
-        value: w.id,
-        label: w.ward,
-    }));
+    // const wardOptions = wardList.map((w) => ({
+    //     value: w.id,
+    //     label: w.ward,
+    // }));
 
     // Form fields configuration
     const formFields = [
@@ -176,20 +174,7 @@ const CreateGovernment = () => {
                 fetchWards(value);
             },
         },
-        {
-            name: "wardNumber",
-            label: "Ward Number",
-            type: "select",
-            options: wardOptions,
-            required: true,
-        },
-        {
-            name: "address",
-            label: "Address",
-            type: "text",
-            required: true,
-        },
-
+    
         {
             name: "authorityAdminFullName",
             label: "Authority Admin User Full Name",
@@ -257,8 +242,7 @@ const CreateGovernment = () => {
                         description: formData.description,
                         provinceId: formData.provinceId,
                         districtId: formData.districtId,
-                        localLevelId: formData.localLevelId,
-                        wardNumber: formData.wardNumber,
+                        localLevelId: formData.localLevelId,                      
                         latitude: formData.latitude,
                         longitude: formData.longitude,
                         address: formData.address,
